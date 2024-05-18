@@ -13,24 +13,30 @@ export const config = {
   },
 };
 
-const uploadDir = "./uploads/video/"; // Directory to store uploaded files
 
 export async function POST(req, res) {
   try {
     const formData = await req.formData();
-    const file = formData.get("video");
-
-    if (!file) {
-      return NextResponse.json({ status: "fail", data: "No file uploaded" });
+    const videoData = formData.get("video");
+    const imageData = formData.get("image");
+    if(imageData){
+      const fileExtension = path.extname(imageData.name); // Extract file extension
+      const uniqueId = uuidv4();
+      const filePath = `./uploads/images/${uniqueId}-file${fileExtension}`; // Append extension to file name
+  
+      await pump(imageData.stream(), fs.createWriteStream(filePath));
+  
+      return NextResponse.json({ status: "success", data: { size: imageData.size, path: filePath } });
     }
-
-    const fileExtension = path.extname(file.name); // Extract file extension
-    const uniqueId = uuidv4();
-    const filePath = `${uploadDir}/${uniqueId}-file${fileExtension}`; // Append extension to file name
-
-    await pump(file.stream(), fs.createWriteStream(filePath));
-
-    return NextResponse.json({ status: "success", data: { size: file.size, path: filePath } });
+    if(videoData){
+      const fileExtension = path.extname(videoData.name); // Extract file extension
+      const uniqueId = uuidv4();
+      const filePath = `./uploads/videos/${uniqueId}-file${fileExtension}`; // Append extension to file name
+  
+      await pump(videoData.stream(), fs.createWriteStream(filePath));
+  
+      return NextResponse.json({ status: "success", data: { size: videoData.size, path: filePath } });
+    }
   } catch (e) {
     return NextResponse.json({ status: "fail", data: e.message });
   }
