@@ -52,7 +52,7 @@ LinearProgressWithLabel.propTypes = {
 export default function Home() {
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
-  const [formData, setFormData] = useState({ number: '', content: '', tags: [], file: null, });
+  const [formData, setFormData] = useState({ number: [], content: '', tags: [], file: null, });
   const [isUploadSuccess, setIsUploadSuccess] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
   const [videoPreview, setVideoPreview] = useState('');
@@ -167,6 +167,8 @@ export default function Home() {
           icon: 'error',
           title: 'Error',
           text: 'Error submitting post.',
+        }).then(() => {
+          window.location.reload(); // Reload the page after the Swal modal is closed
         });
       }
     } catch (error) {
@@ -236,6 +238,7 @@ export default function Home() {
           <Select
             labelId="number-label"
             id="number"
+            multiple   
             value={formData.number}
             onChange={handleNumberChange}
             label="Number"
