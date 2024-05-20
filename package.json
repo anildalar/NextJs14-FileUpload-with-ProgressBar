@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "npm run cleanup && next dev",
+    "cleanup": "node cleanup.js",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
@@ -24,6 +25,8 @@
   },
   "devDependencies": {
     "eslint": "^8",
-    "eslint-config-next": "14.2.3"
+    "eslint-config-next": "14.2.3",
+    "fs-extra": "^11.2.0",
+    "rimraf": "^5.0.7"
   }
 }
