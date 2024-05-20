@@ -2,7 +2,7 @@
 import * as React from 'react';
 import styles from "./page.module.css";
 import { styled } from '@mui/material/styles';
-import { Button } from "@mui/material";
+import { Button, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -48,41 +48,52 @@ function LinearProgressWithLabel(props) {
 LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
-const top100Films = [
-  { title: 'The Shawshank Redemption', year: 1994 },
-  { title: 'The Godfather', year: 1972 },
-  { title: 'The Godfather: Part II', year: 1974 },
-  { title: 'The Dark Knight', year: 2008 },
-  { title: '12 Angry Men', year: 1957 },
-  { title: "Schindler's List", year: 1993 },
-  { title: 'Pulp Fiction', year: 1994 }
-];
+
 export default function Home() {
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
-  const [formData, setFormData] = useState({
-    number: '',
-    content: '',
-    tags: [],
-    file: null,
-  });
+  const [formData, setFormData] = useState({ number: '', content: '', tags: [], file: null, });
   const [isUploadSuccess, setIsUploadSuccess] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
   const [videoPreview, setVideoPreview] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [fileUrl, setFileUrl] = useState('');
-  const [loading, setLoading] = useState(false); // State for loader
-  const [alert, setAlert] = useState({ open: false, severity: 'success', message: '' }); // State for alert
+  const [loading, setLoading] = useState(false); 
+  const [numberOptions, setNumberOptions] = useState([]); 
 
+  const fetchNumberOptions = async () => {
+    try {
+      const response = await fetch('/api/getnumbers'); // Replace '/api/numbers' with your API endpoint
+      if (response.ok) {
+        const data = await response.json();
+        setNumberOptions(data.data.data);
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error fetch numbers.',
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error fetch numbers.',
+      });
+    }
+  };
+
+  // Fetch number options on component mount
+  React.useEffect(() => {
+    fetchNumberOptions();
+  }, []);
   const checkFormValidity = () => {
     const { number, content } = formData;
     setIsFormValid(number !== '' && content !== '' && isUploadSuccess);
   };
-
   React.useEffect(() => {
     checkFormValidity();
   }, [formData, isUploadSuccess]);
-
   const handleFileChange = (event) => {
     setIsFormValid(false);
     const selectedFile = event.target.files[0];
@@ -110,7 +121,6 @@ export default function Home() {
       reader.readAsDataURL(selectedFile);
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -121,6 +131,10 @@ export default function Home() {
   };
   const handleChangeTag = (event, newValue) => {
     setFormData({ ...formData, tags: newValue || [] }); // Ensure newValue is not undefined
+  };
+  const handleNumberChange = (event) => {
+    setFormData({ ...formData, number: event.target.value});
+    checkFormValidity();
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -166,7 +180,6 @@ export default function Home() {
       setLoading(false); // Hide loader
     }
   };
-
   const uploadFile = async (file, type) => {
     const formData = new FormData();
     if (type === 'image') {
@@ -217,15 +230,25 @@ export default function Home() {
           flexDirection: 'column',
         }}
       >
-        <TextField
-          label="Number"
-          type="number"
-          name="number"
-          value={formData.number}
-          onChange={handleChange}
-          required
-          sx={{ mb: 2 }}
-        />
+       
+        <FormControl sx={{ minWidth: 120, mb: 2 }}>
+          <InputLabel id="number-label">Number</InputLabel>
+          <Select
+            labelId="number-label"
+            id="number"
+            value={formData.number}
+            onChange={handleNumberChange}
+            label="Number"
+            required
+          >
+            <MenuItem value="">
+              <em>None</em>
+            </MenuItem>
+            {numberOptions?.map((option) => (
+              <MenuItem key={option.number} value={option.number}>{option.number}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <TextField
           label="Content"
           multiline
