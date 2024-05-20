@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import * as React from 'react';
 import styles from "./page.module.css";
 import { styled } from '@mui/material/styles';
@@ -12,7 +12,10 @@ import { useState } from 'react';
 import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-
+import CircularProgress from '@mui/material/CircularProgress';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+import Swal from 'sweetalert2';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -43,7 +46,6 @@ LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-
 export default function Home() {
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
@@ -57,6 +59,8 @@ export default function Home() {
   const [isFormValid, setIsFormValid] = useState(false);
   const [imagePreview, setImagePreview] = useState('');
   const [fileUrl, setFileUrl] = useState('');
+  const [loading, setLoading] = useState(false); // State for loader
+  const [alert, setAlert] = useState({ open: false, severity: 'success', message: '' }); // State for alert
 
   const checkFormValidity = () => {
     const { number, content } = formData;
@@ -77,21 +81,18 @@ export default function Home() {
       const supportedVideoTypes = ['video/mp4', 'video/mpeg', 'video/quicktime'];
 
       if (supportedImageTypes.includes(mimeType)) {
-        
-        uploadFile(selectedFile,'image');
-      } 
+        uploadFile(selectedFile, 'image');
+      }
       if (supportedVideoTypes.includes(mimeType)) {
-        uploadFile(selectedFile,'video');
-      } 
+        uploadFile(selectedFile, 'video');
+      }
 
-      
       const reader = new FileReader();
       reader.onload = (event) => {
         setImagePreview(event.target.result);
       };
       reader.readAsDataURL(selectedFile);
     }
-
   };
 
   const handleChange = (e) => {
@@ -105,14 +106,14 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true); // Show loader
 
     try {
-      // Send image file to the backend
-      let data = {
-          'phoneNumber':formData.number,
-          'tweetData':formData.content,
-          'hashTags':formData.tags,
-          'fileUrl':fileUrl,
+      const data = {
+        phoneNumber: formData.number,
+        tweetData: formData.content,
+        hashTags: formData.tags,
+        fileUrl: fileUrl,
       };
       const res = await fetch('/api/expressapi', {
         method: 'POST',
@@ -120,27 +121,41 @@ export default function Home() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
-      })
-    
-      const data2 = await res.json()
-    
-      return Response.json(data2);
-      
+      });
+
+      const data2 = await res.json();
+      if (data2.status === 'Success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Post submitted successfully!',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error submitting post.',
+        });
+      }
     } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error uploading image.',
+      });
       console.error('Error uploading image:', error);
+    } finally {
+      setLoading(false); // Hide loader
     }
   };
 
-
-  const uploadFile = async (file,type) => {
+  const uploadFile = async (file, type) => {
     const formData = new FormData();
-    if(type =='image'){
-
+    if (type === 'image') {
       formData.append('image', file);
     }
-    if(type =='video'){
+    if (type === 'video') {
       formData.append('video', file);
-
     }
 
     const xhr = new XMLHttpRequest();
@@ -158,16 +173,11 @@ export default function Home() {
       if (xhr.readyState === XMLHttpRequest.DONE) {
         if (xhr.status === 200) {
           setIsFormValid(true);
-          // Parse the JSON response
           const responseJson = JSON.parse(xhr.responseText);
           console.log('Response JSON:', responseJson);
-          setFileUrl(responseJson.data.path)
-          // File upload successful
-          // You can handle success here if needed
+          setFileUrl(responseJson.data.path);
         } else {
           setIsFormValid(false);
-          // File upload failed
-          // You can handle failure here if needed
         }
       }
     };
@@ -176,12 +186,8 @@ export default function Home() {
   };
 
   return (
-    // <main className={styles.main}>
-    //   
-    // </main>
-    <Container maxWidth={'xl'}>
+    <Container maxWidth={'xl'} sx={{ position: 'relative' }}>
       <Typography variant="h4">Post</Typography>
-      
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -226,18 +232,29 @@ export default function Home() {
           />
         )}
         <Box sx={{ width: '100%' }}>
-          <Button  component="label"  variant="contained" startIcon={<CloudUploadIcon />} >
+          <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
             Upload file
             <VisuallyHiddenInput type="file" onChange={handleFileChange} />
           </Button>
-          {progress > 0  && (
+          {progress > 0 && (
             <LinearProgressWithLabel value={progress} sx={{ mt: 2 }} />
           )}
         </Box>
-          <Box mx={{mt:5,mb:5}}>&nbsp;</Box>
+        <Box mx={{ mt: 5, mb: 5 }}>&nbsp;</Box>
         <Button type="submit" variant="contained" disabled={!isFormValid}>
           Submit
         </Button>
+        {loading && (
+          <CircularProgress
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 1, // Ensures it appears above other content
+            }}
+          />
+        )}
       </Box>
     </Container>
   );
