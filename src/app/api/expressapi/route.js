@@ -1,7 +1,7 @@
 export async function POST(req, res) {
   try {
-    const { phoneNumbers, tweetData, hashTags, fileUrl } = await req.json();
-    const phoneNumberList = phoneNumbers; // Assuming phoneNumbers is an array of strings
+    const { phoneNumber, tweetData, hashTags, fileUrl } = await req.json();
+    const phoneNumberList = phoneNumber; // Assuming phoneNumbers is an array of strings
 
     const baseUrl = `${process.env.EXPRESS_API}/tweet`;
 
@@ -31,10 +31,9 @@ export async function POST(req, res) {
     });
 
     const results = await Promise.all(requests);
-
-    return res.json({ status: 'Complete', results });
+    return Response.json({ status: 'Success', results });
   } catch (error) {
     console.error('Error:', error);
-    return res.json({ status: 'Error', error: error.message });
+    return Response.json({ status: 'Error', error: error.message });
   }
 }
