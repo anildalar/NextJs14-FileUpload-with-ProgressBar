@@ -18,6 +18,10 @@ export async function POST(req,res) {
         },
       });
       const data = await res.json();
+      if (data.error) {
+        console.error('Error:', data.error);
+        return Response.json({ status: 'Error', error: data.error });
+      }
       console.log('Success:', data);
       return Response.json({ 'status':'Success',data })
     } catch (error) {

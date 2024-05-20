@@ -124,9 +124,8 @@ export default function Home() {
     
       const data2 = await res.json()
     
-      return Response.json(data2)
-
-      console.log('Image uploaded successfully:', response.data);
+      return Response.json(data2);
+      
     } catch (error) {
       console.error('Error uploading image:', error);
     }
