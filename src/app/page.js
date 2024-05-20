@@ -68,6 +68,7 @@ export default function Home() {
   });
   const [isUploadSuccess, setIsUploadSuccess] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
+  const [videoPreview, setVideoPreview] = useState('');
   const [imagePreview, setImagePreview] = useState('');
   const [fileUrl, setFileUrl] = useState('');
   const [loading, setLoading] = useState(false); // State for loader
@@ -100,7 +101,11 @@ export default function Home() {
 
       const reader = new FileReader();
       reader.onload = (event) => {
-        setImagePreview(event.target.result);
+        if (supportedVideoTypes.includes(mimeType)) {
+          setVideoPreview(event.target.result);
+        } else {
+          setImagePreview(event.target.result);
+        }
       };
       reader.readAsDataURL(selectedFile);
     }
@@ -122,8 +127,6 @@ export default function Home() {
     setLoading(true); // Show loader
 
     try {
-      
-
       const data = {
         phoneNumber: formData.number,
         tweetData: formData.content,
@@ -172,11 +175,9 @@ export default function Home() {
     if (type === 'video') {
       formData.append('video', file);
     }
-
     const xhr = new XMLHttpRequest();
 
     xhr.open('POST', '/api/upload');
-
     xhr.upload.addEventListener('progress', (event) => {
       if (event.lengthComputable) {
         const percentCompleted = Math.round((event.loaded * 100) / event.total);
@@ -202,13 +203,15 @@ export default function Home() {
   
 
   return (
-    <Container maxWidth={'xl'} sx={{ position: 'relative' }}>
-      <Typography variant="h4">Post</Typography>
+    <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
+      
+      <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
       <Box
         component="form"
         onSubmit={handleSubmit}
         sx={{
           mt: 5,
+          mb:5,
           width: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -253,14 +256,6 @@ export default function Home() {
             />
           )}
         />
-        
-        {/* <TextField
-          label="Tags"
-          name="tags"
-          value={formData.tags}
-          onChange={handleChange}
-          sx={{ mb: 2 }}
-        /> */}
         {imagePreview && (
           <img
             src={imagePreview}
@@ -268,7 +263,14 @@ export default function Home() {
             style={{ maxWidth: '20%', maxHeight: '200px', marginBottom: '10px' }}
           />
         )}
-        <Box sx={{ width: '100%' }}>
+        {videoPreview && (
+          <video
+            controls
+            src={videoPreview}
+            style={{ maxWidth: '20%', maxHeight: '200px', marginBottom: '10px' }}
+          />
+        )}
+        <Box sx={{ width: '100%',mt:3,mb:3 }}>
           <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
             Upload file
             <VisuallyHiddenInput type="file" onChange={handleFileChange} />
@@ -277,8 +279,7 @@ export default function Home() {
             <LinearProgressWithLabel value={progress} sx={{ mt: 2 }} />
           )}
         </Box>
-        <Box mx={{ mt: 5, mb: 5 }}>&nbsp;</Box>
-        <Button type="submit" variant="contained" disabled={!isFormValid}>
+        <Button mx={{mt:3,mb:3 }}  type="submit" variant="contained" disabled={!isFormValid}>
           Submit
         </Button>
         {loading && (
