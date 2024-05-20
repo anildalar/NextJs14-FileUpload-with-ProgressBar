@@ -16,6 +16,9 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import Swal from 'sweetalert2';
+import Stack from '@mui/material/Stack';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
@@ -45,14 +48,22 @@ function LinearProgressWithLabel(props) {
 LinearProgressWithLabel.propTypes = {
   value: PropTypes.number.isRequired,
 };
-
+const top100Films = [
+  { title: 'The Shawshank Redemption', year: 1994 },
+  { title: 'The Godfather', year: 1972 },
+  { title: 'The Godfather: Part II', year: 1974 },
+  { title: 'The Dark Knight', year: 2008 },
+  { title: '12 Angry Men', year: 1957 },
+  { title: "Schindler's List", year: 1993 },
+  { title: 'Pulp Fiction', year: 1994 }
+];
 export default function Home() {
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
   const [formData, setFormData] = useState({
     number: '',
     content: '',
-    tags: '',
+    tags: [],
     file: null,
   });
   const [isUploadSuccess, setIsUploadSuccess] = useState(true);
@@ -103,16 +114,20 @@ export default function Home() {
     }));
     checkFormValidity();
   };
-
+  const handleChangeTag = (event, newValue) => {
+    setFormData({ ...formData, tags: newValue || [] }); // Ensure newValue is not undefined
+  };
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Show loader
 
     try {
+      
+
       const data = {
         phoneNumber: formData.number,
         tweetData: formData.content,
-        hashTags: formData.tags,
+        hashTags: (formData.tags || []).map(tag => tag).join(','),
         fileUrl: fileUrl,
       };
       const res = await fetch('/api/expressapi', {
@@ -184,6 +199,7 @@ export default function Home() {
 
     xhr.send(formData);
   };
+  
 
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative' }}>
@@ -217,13 +233,34 @@ export default function Home() {
           required
           sx={{ mb: 2 }}
         />
-        <TextField
+        <Autocomplete
+          multiple
+          id="tags-filled"
+          onChange={handleChangeTag}
+          options={[]}
+          freeSolo
+          renderTags={(value, getTagProps) =>
+            value.map((option, index) => (
+              <Chip variant="outlined" label={option} {...getTagProps({ index })} />
+            ))
+          }
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="filled"
+              label="Tags"
+              placeholder="tags"
+            />
+          )}
+        />
+        
+        {/* <TextField
           label="Tags"
           name="tags"
           value={formData.tags}
           onChange={handleChange}
           sx={{ mb: 2 }}
-        />
+        /> */}
         {imagePreview && (
           <img
             src={imagePreview}
