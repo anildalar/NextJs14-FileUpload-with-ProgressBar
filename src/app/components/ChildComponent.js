@@ -59,38 +59,14 @@ export default function ChildComponent(props) {
   const [imagePreview, setImagePreview] = useState('');
   const [fileUrl, setFileUrl] = useState('');
   const [loading, setLoading] = useState(false); 
-  const [numberOptions, setNumberOptions] = useState([]); 
+  const [numberOptions, setNumberOptions] = useState(props.creds.numbers); 
 
   const searchParams = useSearchParams()
   const uname = searchParams.get('uname')
   const pass = searchParams.get('pass')
   console.log(uname);
   console.log(pass);
-  const fetchNumberOptions = async () => {
-    try {
-      const response = await fetch('/api/getnumbers'); // Replace '/api/numbers' with your API endpoint
-      if (response.ok) {
-        const data = await response.json();
-        setNumberOptions(data.data.data);
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'Error fetch numbers.',
-        });
-      }
-    } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: 'Error fetch numbers.',
-      });
-    }
-  };
-  // Fetch number options on component mount
-  React.useEffect(() => {
-    fetchNumberOptions();
-  }, []);
+  
   const checkFormValidity = () => {
     const { number, content } = formData;
     setIsFormValid(number !== '' && content !== '' && isUploadSuccess);
@@ -137,7 +113,16 @@ export default function ChildComponent(props) {
     setFormData({ ...formData, tags: newValue || [] }); // Ensure newValue is not undefined
   };
   const handleNumberChange = (event) => {
-    setFormData({ ...formData, number: event.target.value});
+    const value = event.target.value;
+    if (value.includes('all')) {
+      if (formData.number.length === numberOptions.length) {
+        setFormData({ ...formData, number: [] });
+      } else {
+        setFormData({ ...formData, number: numberOptions });
+      }
+    } else {
+      setFormData({ ...formData, number: value });
+    }
     checkFormValidity();
   };
   const handleSubmit = async (e) => {
@@ -224,7 +209,8 @@ export default function ChildComponent(props) {
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
 
-      <Typography variant="h4" mx={{textAlign:'center',mt:5}}>Welcome <img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
+      <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
+      <Typography variant="h4" mx={{textAlign:'left',mt:5}}>Welcome {(props?.creds?.user).toUpperCase()}</Typography>
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -248,11 +234,11 @@ export default function ChildComponent(props) {
             label="Number"
             required
           >
-            <MenuItem value="">
-              <em>None</em>
+            <MenuItem value="all">
+              <em>All</em>
             </MenuItem>
             {numberOptions?.map((option) => (
-              <MenuItem key={option.number} value={option.number}>{option.number}</MenuItem>
+              <MenuItem key={option} value={option}>{option}</MenuItem>
             ))}
           </Select>
         </FormControl>
