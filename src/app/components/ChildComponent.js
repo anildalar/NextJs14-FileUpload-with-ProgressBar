@@ -225,6 +225,7 @@ export default function ChildComponent(props) {
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
 
       <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
+      <Typography variant="h4" mx={{textAlign:'left',mt:5}}>Welcome {(props?.creds?.user).toUpperCase()}</Typography>
       <Box
         component="form"
         onSubmit={handleSubmit}

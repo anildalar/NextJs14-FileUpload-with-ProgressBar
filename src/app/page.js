@@ -32,7 +32,7 @@ export default async function Page({ searchParams }) {
   }else{
     return (
       <>
-          <h1 style={{color:'red',textAlign:'center'}}>Invalid Credentilas</h1>
+          <h1 style={{color:'red',textAlign:'center'}}>Invalid credentials</h1>
       </>
     )
   }
