@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import { Button, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -10,26 +10,22 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useState } from 'react';
 import Container from '@mui/material/Container';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import Swal from 'sweetalert2';
-import Stack from '@mui/material/Stack';
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import { useSearchParams } from 'next/navigation'
 
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
-  height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
-  bottom: 0,
-  left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
+    clipPath: 'inset(50%)',
+    height: 1,
+    overflow: 'hidden',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    whiteSpace: 'nowrap',
+    width: 1,
 });
 
 function LinearProgressWithLabel(props) {
@@ -59,6 +55,9 @@ export default function ChildComponent(props) {
   const [imagePreview, setImagePreview] = useState('');
   const [fileUrl, setFileUrl] = useState('');
   const [loading, setLoading] = useState(false); 
+  const [openModal, setOpenModal] = useState(false);
+  const [proxies, setProxies] = useState('');
+  const [validProxies, setValidProxies] = useState('');
   const [numberOptions, setNumberOptions] = useState(props.creds.numbers); 
 
   const searchParams = useSearchParams()
@@ -66,14 +65,21 @@ export default function ChildComponent(props) {
   const pass = searchParams.get('pass')
   console.log(uname);
   console.log(pass);
-  
+
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
   const checkFormValidity = () => {
     const { number, content } = formData;
     setIsFormValid(number.length > 0 && content.trim() !== '' && isUploadSuccess);
   };
   React.useEffect(() => {
     checkFormValidity();
-  }, [formData, isUploadSuccess]);
+    validateProxies(proxies);
+  }, [formData,proxies,isUploadSuccess]);
   const handleFileChange = (event) => {
     setIsFormValid(false);
     const selectedFile = event.target.files[0];
@@ -204,11 +210,75 @@ export default function ChildComponent(props) {
 
     xhr.send(formData);
   };
-  console.log('props >>>>',props.creds.user)
+  
+  const handleProxiesChange = (e) => {
+    const input = e.target.value;
+    setProxies(input);
+    validateProxies(input);
+  };
+  const validateProxies = (input) => {
+    const proxyPattern = /^(?:[\w]+:[\w]+@)?[\d.]+:\d+$/; // Pattern for username:password@ip:port or ip:port
+    const sanitizedInput = input
+      .split(/[\n,]+/) // Split by new lines or commas
+      .map((proxy) => proxy.trim())
+      .filter((proxy) => proxyPattern.test(proxy)); // Filter only valid proxies
 
+    setValidProxies(sanitizedInput.join(', ')); // Join valid proxies into a comma-separated string
+  };
+  const handleSubmitProxies = async (e) => {
+    e.preventDefault();
+    setLoading(true); // Show loader
+    setOpenModal(false);
+    try {
+      const res = await fetch('/api/proxies', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({proxies:validProxies}),
+      });
+
+      const data2 = await res.json();
+      if (data2.status === 'Success') {
+        console.log("data",data2)
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Proxies successfully Inserted!',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error submitting post.',
+        }).then(() => {
+          window.location.reload(); // Reload the page after the Swal modal is closed
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error uploading image.',
+      });
+      console.error('Error uploading image:', error);
+    } finally {
+      setLoading(false); // Hide loader
+    }
+  }
+
+  console.log('Valid Proxies',validProxies);
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
-
+      {
+        props.creds.user ==='zia' &&
+        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+          {/* <Button variant="contained" sx={{mr:2}} onClick={handleOpenModal}>Register</Button>
+          <Button variant="contained"  sx={{mr:2}} onClick={handleOpenModal}>Login</Button> */}
+          <Button variant="contained" sx={{mr:2}} onClick={handleOpenModal}>Add Proxies</Button>
+        </Box>
+      }
+        
       <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
       <Typography variant="h4" mx={{textAlign:'left',mt:5}}>Welcome {(props?.creds?.user).toUpperCase()}</Typography>
       <Box
@@ -222,7 +292,7 @@ export default function ChildComponent(props) {
           flexDirection: 'column',
         }}
       >
-       
+          
         <FormControl sx={{ minWidth: 120, mb: 2 }}>
           <InputLabel id="number-label">Number</InputLabel>
           <Select
@@ -309,7 +379,33 @@ export default function ChildComponent(props) {
             }}
           />
         )}
+
+        
       </Box>
+      {
+          props.creds.user ==='zia' &&
+          <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="lg">
+            <DialogTitle sx={{ textAlign: 'center', fontSize: '2rem' }}>Enter Proxies</DialogTitle>
+            <DialogContent>
+              <Typography variant="subtitle1">Enter proxies in comma separated or proxy per line:</Typography>
+              <Typography variant="subtitle1" sx={{ color: 'red' }}>username:password@ip:port or ip:port</Typography>
+              <TextField
+                multiline
+                rows={4}
+                value={proxies}
+                onChange={handleProxiesChange}
+                fullWidth
+                variant="outlined"
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseModal}>Close</Button>
+              <Button onClick={handleSubmitProxies} color="primary" variant="contained">
+                Submit
+              </Button>
+            </DialogActions>
+          </Dialog>
+      }
     </Container>
   );
 }
