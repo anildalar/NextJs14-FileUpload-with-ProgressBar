@@ -26,11 +26,13 @@ export default async function Page({ searchParams }) {
   if (data2.status == 'Success') {
     const res2 = await getNumbers(uname);
     const numbersArray = res2?.data?.map(item => item.number);
+    const unames = res2?.data?.map(item => item.username);
     console.log("Numbers",res2);
     const data = {
       user: uname,
       pass: pass,
-      numbers:numbersArray
+      numbers:numbersArray,
+      unames:unames
     };
     return (
       <>
