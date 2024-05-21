@@ -219,12 +219,12 @@ export default function ChildComponent(props) {
 
     xhr.send(formData);
   };
-  console.log('props >>>>',props)
+  console.log('props >>>>',props.creds.user)
 
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
 
-      <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
+      <Typography variant="h4" mx={{textAlign:'center',mt:5}}>Welcome <img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
       <Box
         component="form"
         onSubmit={handleSubmit}
