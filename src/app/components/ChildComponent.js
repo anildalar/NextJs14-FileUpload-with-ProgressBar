@@ -69,7 +69,7 @@ export default function ChildComponent(props) {
   
   const checkFormValidity = () => {
     const { number, content } = formData;
-    setIsFormValid(number !== '' && content !== '' && isUploadSuccess);
+    setIsFormValid(number.length > 0 && content.trim() !== '' && isUploadSuccess);
   };
   React.useEffect(() => {
     checkFormValidity();
