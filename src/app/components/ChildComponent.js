@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TablePagination } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -15,7 +15,7 @@ import Swal from 'sweetalert2';
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import { useSearchParams } from 'next/navigation'
-
+import { useRouter } from 'next/navigation'
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -66,6 +66,7 @@ LinearProgressWithLabel.propTypes = {
 };
 
 export default function ChildComponent(props) {
+  const router = useRouter()
   const [progress, setProgress] = React.useState(0);
   const [file, setFile] = React.useState(null);
   const [formData, setFormData] = useState({ number: [], content: '', tags: [], file: null, });
@@ -76,6 +77,8 @@ export default function ChildComponent(props) {
   const [fileUrl, setFileUrl] = useState('');
   const [loading, setLoading] = useState(false); 
   const [openModal, setOpenModal] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
   const [proxies, setProxies] = useState('');
   const [validProxies, setValidProxies] = useState('');
   const [numberOptions, setNumberOptions] = useState(props.creds.numbers); 
@@ -83,8 +86,6 @@ export default function ChildComponent(props) {
   const searchParams = useSearchParams()
   const uname = searchParams.get('uname')
   const pass = searchParams.get('pass')
-  console.log('props',props);
-  console.log(pass);
 
   const handleOpenModal = () => {
     setOpenModal(true);
@@ -287,18 +288,24 @@ export default function ChildComponent(props) {
     }
   }
 
-  console.log('Valid Proxies',validProxies);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+  const startIndex = page * rowsPerPage;
+  const paginatedRows = props?.creds?.unames.slice(startIndex, startIndex + rowsPerPage);
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
-      {
-        props.creds.user ==='zia' &&
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
-          {/* <Button variant="contained" sx={{mr:2}} onClick={handleOpenModal}>Register</Button>
-          <Button variant="contained"  sx={{mr:2}} onClick={handleOpenModal}>Login</Button> */}
-         
-        </Box>
-      }
-        
+       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
+        {
+          props.creds.user ==='zia' &&
+            <Button variant="contained" sx={{mr:2}} onClick={handleOpenModal}>Add Proxies</Button>
+        }
+        <Button variant="contained" sx={{mr:2}} onClick={() => router.push(`/reports?uname=${uname}&pass=${pass}`)}>Reports</Button>
+      </Box>
       <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
       <Typography variant="h4" mx={{textAlign:'left',mt:5}}>Welcome {(props?.creds?.user).toUpperCase()}</Typography>
       <Box
@@ -431,7 +438,6 @@ export default function ChildComponent(props) {
         <>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Box component="h2">Registered Accounts</Box>
-            <Button variant="contained" onClick={handleOpenModal}>Add Proxies</Button>
           </Box>
           <TableContainer sx={{mt:5,mb:5}} component={Paper}>
             <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -442,7 +448,7 @@ export default function ChildComponent(props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {props?.creds?.unames?.map((row) => (
+                {paginatedRows?.map((row) => (
                   <TableRow
                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                   >
@@ -457,6 +463,16 @@ export default function ChildComponent(props) {
               </TableBody>
             </Table>
           </TableContainer>
+          <TablePagination
+              rowsPerPageOptions={[5, 10, 25]} // You can customize the rows per page options
+              component="div"
+              count={props?.creds?.unames.length} // Total number of rows
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={handleChangePage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+
         </>
       }
       

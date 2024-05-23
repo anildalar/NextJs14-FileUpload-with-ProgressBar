@@ -15,14 +15,17 @@
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.18",
     "axios": "^1.6.8",
+    "file-saver": "^2.0.5",
     "formidable": "^3.5.1",
     "next": "14.2.3",
     "next-connect": "^1.0.0",
     "node-cron": "^3.0.3",
     "react": "^18",
     "react-dom": "^18",
+    "react-router-dom": "^6.23.1",
     "sweetalert2": "^11.11.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "eslint": "^8",

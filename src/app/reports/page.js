@@ -1,15 +1,8 @@
 import React from 'react'
-
-// import styles from "./page.module.css";
-import ChildComponent from './components/ChildComponent'
+import ReportComponent from '../components/ReportComponent';
 
 async function getReports(uname) {
   let url = process.env.EXPRESS_API +`/getReports?uname=${uname}`;
-  const res = await fetch(url,{ cache: 'no-store' });
-  return res.json();
-}
-async function getNumbers(uname) {
-  let url = process.env.EXPRESS_API +`/getNumbers?uname=${uname}`;
   const res = await fetch(url,{ cache: 'no-store' });
   return res.json();
 }
@@ -26,23 +19,16 @@ export default async function Page({ searchParams }) {
   const pass = searchParams.pass || 'defaultPass';
   const res = await checkUser(uname,pass);
   const data2 = await res;
-  //let data2={}
   if (data2.status == 'Success') {
     const resReports = await getReports(uname);
-    const res2 = await getNumbers(uname);
-    const numbersArray = res2?.data?.map(item => item.number);
-    const unames = res2?.data?.map(item => item.username);
-    console.log("Numbers",res2);
     const data = {
       user: uname,
       pass: pass,
-      numbers:numbersArray,
-      unames:unames,
-      reports:resReports
+      reports:resReports,
     };
     return (
       <>
-        <ChildComponent creds={data} />
+        <ReportComponent creds={data} />
       </>
     )
   }else{
