@@ -138,7 +138,7 @@ export default function ReportComponent(props) {
           <Box sx={{ position: 'relative', mb: 3 }}>
             <Button variant="contained" sx={{ position: 'absolute', left: 0 }} onClick={() => router.push(`/?uname=${uname}&pass=${pass}`)}>Goto campaign</Button>
             <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
-              Account Reports
+             {uname.toUpperCase()} Account Reports
             </Box>
           </Box>
           <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3,mt:5 }}>
@@ -159,22 +159,22 @@ export default function ReportComponent(props) {
                   Download Excel
             </Button>
           </Box>
-
-          {/* <TableContainer sx={{mt:5,mb:5}} component={Paper}>
-            <Table sx={{ minWidth: 650 }} aria-label="simple table">
-              <TableHead>
-                <TableRow>
-                  <TableCell><strong>Number</strong></TableCell>
-                  <TableCell><strong>Username</strong></TableCell>
-                  <TableCell><strong>Tweet Data</strong></TableCell>
-                  <TableCell><strong>Hash(#)</strong></TableCell>
-                  <TableCell><strong>FinishDate</strong></TableCell>
-                  <TableCell><strong>Status</strong></TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                  {filteredData.length > 0 ? (
-                    filteredData.map((row, index) => (
+       
+        <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell><strong>Number</strong></TableCell>
+              <TableCell><strong>Username</strong></TableCell>
+              <TableCell><strong>Tweet Data</strong></TableCell>
+              <TableCell><strong>Hash(#)</strong></TableCell>
+              <TableCell><strong>FinishDate</strong></TableCell>
+              <TableCell><strong>Status</strong></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {paginatedData.length > 0 ? (
+                    paginatedData.map((row, index) => (
                       <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                         <TableCell component="th" scope="row">{row.number}</TableCell>
                         <TableCell>{row.username}</TableCell>
@@ -198,47 +198,13 @@ export default function ReportComponent(props) {
                       </TableCell>
                     </TableRow>
                   )}
-              </TableBody>
-            </Table>
-          </TableContainer> */}
-          <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
-          <TableHead>
-            <TableRow>
-              <TableCell><strong>Number</strong></TableCell>
-              <TableCell><strong>Username</strong></TableCell>
-              <TableCell><strong>Tweet Data</strong></TableCell>
-              <TableCell><strong>Hash(#)</strong></TableCell>
-              <TableCell><strong>FinishDate</strong></TableCell>
-              <TableCell><strong>Status</strong></TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {paginatedData.map((row, index) => (
-              <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                <TableCell component="th" scope="row">{row.number}</TableCell>
-                <TableCell>{row.username}</TableCell>
-                <TableCell>{row.tweet_data}</TableCell>
-                <TableCell>{row.tweet_hash}</TableCell>
-                <TableCell>{formatDate(row.createdAt)}</TableCell>
-                <TableCell>
-                  <Button
-                    variant="contained"
-                    sx={{ backgroundColor: getStatusColor(row.status), color: 'white' }}
-                  >
-                    {row.status}
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-            {emptyRows > 0 && (
-              <TableRow style={{ height: 53 * emptyRows }}>
+            {paginatedData.length  > 0 && (
+              <TableRow style={{ height: 53 * paginatedData.length  }}>
                 <TableCell colSpan={6} />
               </TableRow>
             )}
           </TableBody>
         </Table>
-        {/* Pagination */}
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
