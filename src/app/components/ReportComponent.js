@@ -14,9 +14,10 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Swal from 'sweetalert2';
 import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
+import { format, parseISO } from 'date-fns';
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -25,11 +26,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { useRouter } from 'next/navigation'
-
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
+import { useRouter } from 'next/navigation';
 
 function LinearProgressWithLabel(props) {
   return (
@@ -51,15 +48,16 @@ LinearProgressWithLabel.propTypes = {
 export default function ReportComponent(props) {
   const [startdateUse, setStartDateUse] = useState('');
   const [enddateUse, setEndDateUse] = useState('');
-  const router = useRouter()
-  const searchParams = useSearchParams()
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const uname = searchParams.get('uname')
+  const uname = searchParams.get('uname');
   const pass = searchParams.get('pass');
   const startdate = searchParams.get('startdate');
   const enddate = searchParams.get('enddate');
   const data = props.creds.reports.data || [];
+  
   const filterDataByDate = (data, startdate, enddate) => {
     if (!startdate || !enddate) {
       return data;
@@ -73,6 +71,7 @@ export default function ReportComponent(props) {
       return createdAt >= startDateObj && createdAt <= endDateObj;
     });
   };
+
   const filteredData = filterDataByDate(data, startdate, enddate);
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -86,26 +85,19 @@ export default function ReportComponent(props) {
         return 'grey';
     }
   };
+
   const formatDate = (dateString) => {
-    const dateObj = new Date(dateString);
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const year = dateObj.getFullYear();
-    const hours = String(dateObj.getHours()).padStart(2, '0');
-    const minutes = String(dateObj.getMinutes()).padStart(2, '0');
-    const seconds = String(dateObj.getSeconds()).padStart(2, '0');
-    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    return format(parseISO(dateString), 'dd-MM-yyyy HH:mm:ss');
   };
+
   const formatDate2 = (dateString) => {
-    const dateObj = new Date(dateString);
-    const day = String(dateObj.getDate()).padStart(2, '0');
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const year = dateObj.getFullYear();
-    return `${day}-${month}-${year}`;
+    return format(parseISO(dateString), 'dd-MM-yyyy');
   };
+
   const handleGoClick = () => {
     router.push(`/reports?uname=${uname}&pass=${pass}&startdate=${formatDate2(startdateUse)}&enddate=${formatDate2(enddateUse)}`);
   };
+
   const handleExcelDownload = () => {
     const excelData = filteredData.map(row => [
       row.number,
@@ -122,6 +114,7 @@ export default function ReportComponent(props) {
     const excelBlob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     saveAs(excelBlob, 'report.xlsx');
   };
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -130,37 +123,37 @@ export default function ReportComponent(props) {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
   };
+
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredData.length - page * rowsPerPage);
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
-          <Box sx={{ position: 'relative', mb: 3 }}>
-            <Button variant="contained" sx={{ position: 'absolute', left: 0 }} onClick={() => router.push(`/?uname=${uname}&pass=${pass}`)}>Goto campaign</Button>
-            <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
-             {uname.toUpperCase()} Account Reports
-            </Box>
-          </Box>
-          <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3,mt:5 }}>
-            <Box sx={{  position: 'absolute',left: 0, mr: 2 }}>
-              <InputLabel htmlFor="startdate">Start Date</InputLabel>
-              <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
-            </Box>
-            <Box sx={{ position: 'absolute',left: 120, mr: 2 }}>
-              <InputLabel htmlFor="enddate">End Date</InputLabel>
-              <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
-            </Box>
-            <Button sx={{ position: 'absolute',left: 250, mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
-            <Button
-              variant="contained"
-              onClick={handleExcelDownload}
-              sx={{ position: 'absolute', top: 0, right: 0 }}
-            >
-                  Download Excel
-            </Button>
-          </Box>
-       
-        <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
+    <Container maxWidth={'xl'} sx={{ position: 'relative', pt: 3 }}>
+      <Box sx={{ position: 'relative', mb: 3 }}>
+        <Button variant="contained" sx={{ position: 'absolute', left: 0 }} onClick={() => router.push(`/?uname=${uname}&pass=${pass}`)}>Goto campaign</Button>
+        <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
+          {uname.toUpperCase()} Account Reports
+        </Box>
+      </Box>
+      <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3, mt: 5 }}>
+        <Box sx={{ position: 'absolute', left: 0, mr: 2 }}>
+          <InputLabel htmlFor="startdate">Start Date</InputLabel>
+          <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+        </Box>
+        <Box sx={{ position: 'absolute', left: 120, mr: 2 }}>
+          <InputLabel htmlFor="enddate">End Date</InputLabel>
+          <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
+        </Box>
+        <Button sx={{ position: 'absolute', left: 250, mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
+        <Button
+          variant="contained"
+          onClick={handleExcelDownload}
+          sx={{ position: 'absolute', top: 0, right: 0 }}
+        >
+          Download Excel
+        </Button>
+      </Box>
+      <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
             <TableRow>
@@ -174,32 +167,32 @@ export default function ReportComponent(props) {
           </TableHead>
           <TableBody>
             {paginatedData.length > 0 ? (
-                    paginatedData.map((row, index) => (
-                      <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                        <TableCell component="th" scope="row">{row.number}</TableCell>
-                        <TableCell>{row.username}</TableCell>
-                        <TableCell>{row.tweet_data}</TableCell>
-                        <TableCell>{row.tweet_hash}</TableCell>
-                        <TableCell>{formatDate(row.createdAt)}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant="contained"
-                            sx={{ backgroundColor: getStatusColor(row.status), color: 'white' }}
-                          >
-                            {row.status}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={5}>
-                        <Typography variant="h6" align="center">No data available</Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-            {paginatedData.length  > 0 && (
-              <TableRow style={{ height: 53 * paginatedData.length  }}>
+              paginatedData.map((row, index) => (
+                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                  <TableCell component="th" scope="row">{row.number}</TableCell>
+                  <TableCell>{row.username}</TableCell>
+                  <TableCell>{row.tweet_data}</TableCell>
+                  <TableCell>{row.tweet_hash}</TableCell>
+                  <TableCell>{formatDate(row.createdAt)}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      sx={{ backgroundColor: getStatusColor(row.status), color: 'white' }}
+                    >
+                      {row.status}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <Typography variant="h6" align="center">No data available</Typography>
+                </TableCell>
+              </TableRow>
+            )}
+            {paginatedData.length > 0 && (
+              <TableRow style={{ height: 53 * paginatedData.length }}>
                 <TableCell colSpan={6} />
               </TableRow>
             )}
