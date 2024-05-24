@@ -139,7 +139,7 @@ export default function ReportComponent(props) {
             <InputLabel htmlFor="enddate">End Date</InputLabel>
             <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
           </Box>
-          <Button sx={{ mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
+          <Button sx={{ color: 'white', background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
         </Box>
         <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
           {uname.toUpperCase()} Account Reports
