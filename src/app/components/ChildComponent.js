@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TablePagination } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, Grid, InputLabel, MenuItem, Select, TablePagination } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -152,25 +152,71 @@ export default function ChildComponent(props) {
     }
     checkFormValidity();
   };
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setLoading(true); // Show loader
+
+  //   try {
+  //     const data = {
+  //       phoneNumber: formData.number,
+  //       tweetData: formData.content,
+  //       hashTags: (formData.tags || []).map(tag => tag).join(','),
+  //       fileUrl: fileUrl,
+  //     };
+  //     const res = await fetch('/api/expressapi', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json'
+  //       },
+  //       body: JSON.stringify(data),
+  //     });
+  //     const data2 = await res.json();
+  //     if (data2.status === 'Success') {
+  //       Swal.fire({
+  //         icon: 'success',
+  //         title: 'Success',
+  //         text: 'Post submitted successfully!',
+  //       });
+  //     } else {
+  //       Swal.fire({
+  //         icon: 'error',
+  //         title: 'Error',
+  //         text: 'Error submitting post.',
+  //       }).then(() => {
+  //         window.location.reload(); // Reload the page after the Swal modal is closed
+  //       });
+  //     }
+  //   } catch (error) {
+  //     Swal.fire({
+  //       icon: 'error',
+  //       title: 'Error',
+  //       text: 'Error uploading image.',
+  //     });
+  //     console.error('Error uploading image:', error);
+  //   } finally {
+  //     setLoading(false); // Hide loader
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true); // Show loader
-
+    // const fileName = fileUrl.split('/').pop();
     try {
       const data = {
         phoneNumber: formData.number,
         tweetData: formData.content,
         hashTags: (formData.tags || []).map(tag => tag).join(','),
         fileUrl: fileUrl,
+        uname: uname,
       };
-      const res = await fetch('/api/expressapi', {
+      const res = await fetch('/api/postapi', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(data),
       });
-
       const data2 = await res.json();
       if (data2.status === 'Success') {
         Swal.fire({
@@ -199,11 +245,32 @@ export default function ChildComponent(props) {
     }
   };
   const uploadFile = async (file, type) => {
+    const MAX_VIDEO_SIZE_MB = 512; // Maximum video file size in MB
+    const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024; // Maximum video file size in bytes
+    const MAX_IMAGE_SIZE_MB = 5; // Maximum image file size in MB
+    const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024; // Maximum image file size in bytes
+    const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
     const formData = new FormData();
+   
     if (type === 'image') {
+      if (file.size > MAX_IMAGE_SIZE_BYTES) {
+          setIsFormValid(false);
+          alert(`Image file size should not exceed ${MAX_IMAGE_SIZE_MB} MB.`);
+          return;
+      }
+
+      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+          setIsFormValid(false);
+          alert('Invalid image file type. Allowed types are JPEG, PNG, GIF, BMP, and WEBP.');
+          return;
+      }
       formData.append('image', file);
     }
-    if (type === 'video') {
+    if (type === 'video' && file.size > MAX_VIDEO_SIZE_BYTES) {
+      setIsFormValid(false);
+      alert(`Video file size should not exceed ${MAX_VIDEO_SIZE_MB} MB.`);
+      return;
+    }else{
       formData.append('video', file);
     }
     const xhr = new XMLHttpRequest();
@@ -287,7 +354,6 @@ export default function ChildComponent(props) {
       setLoading(false); // Hide loader
     }
   }
-
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
@@ -299,24 +365,59 @@ export default function ChildComponent(props) {
   const paginatedRows = props?.creds?.unames.slice(startIndex, startIndex + rowsPerPage);
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
-       <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2 }}>
-        {
-          props.creds.user ==='zia' &&
-            <Button variant="contained" sx={{mr:2}} onClick={handleOpenModal}>Add Proxies</Button>
-        }
-        <Button variant="contained" sx={{mr:2}} onClick={() => router.push(`/reports?uname=${uname}&pass=${pass}`)}>Reports</Button>
-      </Box>
-      <Typography variant="h4" mx={{textAlign:'center',mt:5}}><img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png"/> Post</Typography>
-      <Typography variant="h4" mx={{textAlign:'left',mt:5}}>Welcome {(props?.creds?.user).toUpperCase()}</Typography>
-      <Box
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h4" sx={{ textAlign: 'left', color: '#1976d2', fontWeight: 'bold' }}>
+            Welcome {(props?.creds?.user).toUpperCase()}
+          </Typography>
+          <Typography variant="h4" sx={{ textAlign: 'center', display: 'flex', alignItems: 'center', color: '#ff5722', fontWeight: 'bold' }}>
+            <img width='40' src="https://www.freepnglogos.com/new-twitter-x-logo-transparent-png-4.png" alt="Twitter Logo" /> 
+            Post
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {props.creds.user === 'zia' && (
+              <Button 
+                variant="contained" 
+                sx={{ 
+                  mr: 2, 
+                  background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',
+                  color: 'white',
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #4A00E0 30%, #8E2DE2 90%)',
+                  }
+                }} 
+                onClick={handleOpenModal}
+              >
+                Add Proxies
+              </Button>
+            )}
+            <Button 
+              variant="contained" 
+              sx={{ 
+                mr: 2, 
+                background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)', 
+                color: 'white',
+                '&:hover': {
+                  background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                }
+              }} 
+              onClick={() => router.push(`/reports?uname=${uname}&pass=${pass}`)}
+            >
+              Reports
+            </Button>
+          </Box>
+        </Box>
+        <Box
         component="form"
         onSubmit={handleSubmit}
         sx={{
           mt: 5,
           mb:5,
+          p:3,
           width: 1,
           display: 'flex',
           flexDirection: 'column',
+          backgroundColor:"white"
         }}
       >
           
@@ -408,7 +509,7 @@ export default function ChildComponent(props) {
         )}
 
         
-      </Box>
+        </Box>
       {
           props.creds.user ==='zia' &&
           <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="lg">
@@ -462,8 +563,7 @@ export default function ChildComponent(props) {
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
-          <TablePagination
+            <TablePagination
               rowsPerPageOptions={[5, 10, 25]} // You can customize the rows per page options
               component="div"
               count={props?.creds?.unames.length} // Total number of rows
@@ -472,7 +572,7 @@ export default function ChildComponent(props) {
               onPageChange={handleChangePage}
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
-
+          </TableContainer>
         </>
       }
       

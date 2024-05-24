@@ -128,30 +128,30 @@ export default function ReportComponent(props) {
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Container maxWidth={'xl'} sx={{ position: 'relative', pt: 3 }}>
-      <Box sx={{ position: 'relative', mb: 3 }}>
-        <Button variant="contained" sx={{ position: 'absolute', left: 0 }} onClick={() => router.push(`/?uname=${uname}&pass=${pass}`)}>Goto campaign</Button>
+    <Container maxWidth={'xl'} sx={{ position: 'relative', }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ mr: 2 }}>
+            <InputLabel htmlFor="startdate">Start Date</InputLabel>
+            <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+          </Box>
+          <Box sx={{ mr: 2 }}>
+            <InputLabel htmlFor="enddate">End Date</InputLabel>
+            <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
+          </Box>
+          <Button sx={{ mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
+        </Box>
         <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
           {uname.toUpperCase()} Account Reports
         </Box>
-      </Box>
-      <Box sx={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', mb: 3, mt: 5 }}>
-        <Box sx={{ position: 'absolute', left: 0, mr: 2 }}>
-          <InputLabel htmlFor="startdate">Start Date</InputLabel>
-          <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button variant="contained" sx={{ color: 'white', background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)', mr: 2 }} onClick={() => router.push(`/?uname=${uname}&pass=${pass}`)}>
+            Goto campaign
+          </Button>
+          <Button variant="contained" sx={{ color: 'white', background: 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)' }} onClick={handleExcelDownload}>
+            Download Excel
+          </Button>
         </Box>
-        <Box sx={{ position: 'absolute', left: 120, mr: 2 }}>
-          <InputLabel htmlFor="enddate">End Date</InputLabel>
-          <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
-        </Box>
-        <Button sx={{ position: 'absolute', left: 250, mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
-        <Button
-          variant="contained"
-          onClick={handleExcelDownload}
-          sx={{ position: 'absolute', top: 0, right: 0 }}
-        >
-          Download Excel
-        </Button>
       </Box>
       <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -191,11 +191,11 @@ export default function ReportComponent(props) {
                 </TableCell>
               </TableRow>
             )}
-            {paginatedData.length > 0 && (
+            {/* {paginatedData.length > 0 && (
               <TableRow style={{ height: 53 * paginatedData.length }}>
                 <TableCell colSpan={6} />
               </TableRow>
-            )}
+            )} */}
           </TableBody>
         </Table>
         <TablePagination
