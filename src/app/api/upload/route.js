@@ -7,11 +7,12 @@ import { v4 as uuidv4 } from "uuid";
 
 const pump = promisify(pipeline);
 
-export const config = {
+/* export const config = {
   api: {
     bodyParser: false, // Disable the default body parser
   },
-};
+}; */
+export const runtime = 'nodejs';
 
 
 export async function POST(req, res) {
