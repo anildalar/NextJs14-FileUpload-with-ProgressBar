@@ -161,6 +161,7 @@ export default function ReportComponent(props) {
               <TableCell><strong>Username</strong></TableCell>
               <TableCell><strong>Tweet Data</strong></TableCell>
               <TableCell><strong>Hash(#)</strong></TableCell>
+              <TableCell><strong>StartDate</strong></TableCell>
               <TableCell><strong>FinishDate</strong></TableCell>
               <TableCell><strong>Status</strong></TableCell>
             </TableRow>
@@ -174,6 +175,7 @@ export default function ReportComponent(props) {
                   <TableCell>{row.tweet_data}</TableCell>
                   <TableCell>{row.tweet_hash}</TableCell>
                   <TableCell>{formatDate(row.createdAt)}</TableCell>
+                  <TableCell>{formatDate(row.updatedAt)}</TableCell>
                   <TableCell>
                     <Button
                       variant="contained"
@@ -191,11 +193,6 @@ export default function ReportComponent(props) {
                 </TableCell>
               </TableRow>
             )}
-            {/* {paginatedData.length > 0 && (
-              <TableRow style={{ height: 53 * paginatedData.length }}>
-                <TableCell colSpan={6} />
-              </TableRow>
-            )} */}
           </TableBody>
         </Table>
         <TablePagination
