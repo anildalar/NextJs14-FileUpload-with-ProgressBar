@@ -87,11 +87,27 @@ export default function ReportComponent(props) {
   };
 
   const formatDate = (dateString) => {
-    return format(parseISO(dateString), 'dd-MM-yyyy HH:mm:ss');
+    if (!dateString) {
+      return 'N/A';
+    }
+    try {
+      return format(parseISO(dateString), 'dd-MM-yyyy HH:mm:ss');
+    } catch (error) {
+      console.error('Invalid date format:', dateString);
+      return 'Invalid Date';
+    }
   };
-
+  
   const formatDate2 = (dateString) => {
-    return format(parseISO(dateString), 'dd-MM-yyyy');
+    if (!dateString) {
+      return 'N/A';
+    }
+    try {
+      return format(parseISO(dateString), 'dd-MM-yyyy');
+    } catch (error) {
+      console.error('Invalid date format:', dateString);
+      return 'Invalid Date';
+    }
   };
 
   const handleGoClick = () => {
