@@ -161,6 +161,7 @@ export default function ReportComponent(props) {
 
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative', }}>
+      {/* <Image src={`/screenshots/file.png`}  alt="Screenshot" width={400} height={400}/> */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ mr: 2 }}>
@@ -251,7 +252,7 @@ export default function ReportComponent(props) {
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{dialogContent}</DialogTitle>
         <DialogContent>
-          <Image src={`/screenshots/${screeshotUrl}`}  alt="Screenshot" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          <Image src={`/screenshots/${screeshotUrl}`}  alt="Screenshot"  width={800} height={600} />
           {/* <img src={`/screenshots/${screeshotUrl}`}  /> */}
         </DialogContent>
         <DialogActions>
