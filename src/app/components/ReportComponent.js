@@ -87,6 +87,7 @@ export default function ReportComponent(props) {
         return 'grey';
     }
   };
+  
 
   const formatDate = (dateString) => {
     if (!dateString) {
@@ -176,11 +177,11 @@ export default function ReportComponent(props) {
           <TableHead>
             <TableRow>
               <TableCell><strong>Number</strong></TableCell>
-              <TableCell><strong>Username</strong></TableCell>
               <TableCell><strong>Tweet Data</strong></TableCell>
               <TableCell><strong>Hash(#)</strong></TableCell>
               <TableCell><strong>StartDate</strong></TableCell>
               <TableCell><strong>FinishDate</strong></TableCell>
+              <TableCell><strong>StatusInfo</strong></TableCell>
               <TableCell><strong>Status</strong></TableCell>
             </TableRow>
           </TableHead>
@@ -189,11 +190,20 @@ export default function ReportComponent(props) {
               paginatedData.map((row, index) => (
                 <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                   <TableCell component="th" scope="row">{row.number}</TableCell>
-                  <TableCell>{row.username}</TableCell>
                   <TableCell>{row.tweet_data}</TableCell>
                   <TableCell>{row.tweet_hash}</TableCell>
                   <TableCell>{formatDate(row.createdAt)}</TableCell>
                   <TableCell>{formatDate(row.updatedAt)}</TableCell>
+                  <TableCell>
+                    <Typography 
+                      sx={{ 
+                        color: getStatusColor(row.status), 
+                        fontWeight: 'bold' 
+                      }}
+                    >
+                      {row.status_info}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     <Button
                       variant="contained"
