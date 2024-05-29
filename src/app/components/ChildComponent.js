@@ -362,7 +362,7 @@ export default function ChildComponent(props) {
     setPage(0);
   };
   const startIndex = page * rowsPerPage;
-  const paginatedRows = props?.creds?.unames.slice(startIndex, startIndex + rowsPerPage);
+  const paginatedRows = props?.creds?.combinedArray.slice(startIndex, startIndex + rowsPerPage);
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
 
@@ -545,29 +545,37 @@ export default function ChildComponent(props) {
               <TableHead>
                 <TableRow>
                   <TableCell><strong>Username</strong></TableCell>
+                  <TableCell><strong>Number</strong></TableCell>
                   <TableCell><strong>Twitter Link</strong></TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {paginatedRows?.map((row,index) => (
-                  <TableRow
-                    key={index}
-                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {row}
-                    </TableCell>
-                    <TableCell component="th" scope="row">
-                      <a href={`https://x.com/${row}`}  target="_blank" className="link">https://x.com/{row}</a>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {paginatedRows?.map((row, index) => {
+                  const [number, username] = row.split(' - ');
+                  return (
+                        <TableRow
+                        key={index}
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                      >
+                        <TableCell component="th" scope="row">
+                          {username}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          {number}
+                        </TableCell>
+                        <TableCell component="th" scope="row">
+                          <a href={`https://x.com/${username}`}  target="_blank" className="link">https://x.com/{username}</a>
+                        </TableCell>
+                      </TableRow>
+                        
+                  );
+                })}
               </TableBody>
             </Table>
             <TablePagination
               rowsPerPageOptions={[5, 10, 25]} // You can customize the rows per page options
               component="div"
-              count={props?.creds?.unames.length} // Total number of rows
+              count={props?.creds?.combinedArray.length} // Total number of rows
               rowsPerPage={rowsPerPage}
               page={page}
               onPageChange={handleChangePage}

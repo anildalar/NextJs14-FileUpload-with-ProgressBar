@@ -31,13 +31,13 @@ export default async function Page({ searchParams }) {
     const resReports = await getReports(uname);
     const res2 = await getNumbers(uname);
     const numbersArray = res2?.data?.map(item => item.number);
-    const unames = res2?.data?.map(item => item.username);
+    const combinedArray = res2?.data?.map(item => `${item.number} - ${item.username}`);
     console.log("Numbers",res2);
     const data = {
       user: uname,
       pass: pass,
       numbers:numbersArray,
-      unames:unames,
+      combinedArray:combinedArray,
       reports:resReports
     };
     return (
