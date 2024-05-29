@@ -47,6 +47,8 @@ LinearProgressWithLabel.propTypes = {
 };
 
 export default function ReportComponent(props) {
+  const initialRefreshInterval = parseInt(localStorage.getItem('refreshInterval')) || 30;
+  const [refreshInterval, setRefreshInterval] = useState(initialRefreshInterval);
   const [startdateUse, setStartDateUse] = useState('');
   const [enddateUse, setEndDateUse] = useState('');
   const router = useRouter();
@@ -91,7 +93,6 @@ export default function ReportComponent(props) {
         return 'grey';
     }
   };
-  
 
   const formatDate = (dateString) => {
     if (!dateString) {
@@ -156,6 +157,22 @@ export default function ReportComponent(props) {
     setDialogContent('');
   };
 
+  const handleAutoRefresh = () => {
+    window.location.reload();
+    //router.push(`/reports?uname=${uname}&pass=${pass}&startdate=${startdate}&enddate=${enddate}`);
+  };
+
+  React.useEffect(() => {
+    const intervalId = setInterval(handleAutoRefresh, refreshInterval * 1000); // Convert seconds to milliseconds
+    return () => clearInterval(intervalId); // Cleanup function to clear the interval on component unmount
+  }, [refreshInterval]); // Trigger the effect whenever the refreshInterval changes
+
+  // Function to handle interval input change
+  const handleIntervalChange = (e) => {
+    setRefreshInterval(e.target.value);
+    localStorage.setItem('refreshInterval', e.target.value); // Store the refresh interval in localStorage
+  };
+
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredData.length - page * rowsPerPage);
   const paginatedData = filteredData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
@@ -185,6 +202,24 @@ export default function ReportComponent(props) {
             Download Excel
           </Button>
         </Box>
+      </Box>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          padding:'0',
+          margin:'0' // Ensures the Box takes full viewport height to center vertically
+        }}
+      >
+        <InputLabel htmlFor="textinput" sx={{ color: '#000', marginRight: 1 }}><b>Autorefresh In -</b></InputLabel>
+        <input 
+          id="textinput" 
+          type="number" 
+          value={refreshInterval}
+          style={{ height: '35px',lineHeight: '35px',width:'80px', padding: '0px',textAlign: 'center', }}
+          onChange={handleIntervalChange} 
+        /> 
       </Box>
       <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
@@ -248,11 +283,11 @@ export default function ReportComponent(props) {
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
+        
       </TableContainer>
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogContent>
           <Image src={`/screenshots/${screeshotUrl}`}  sizes="100vw" width={500}  height={500}  style={{width: '100%', height: 'auto', }} alt="Screenshot"   />
-          {/* <img src={`/screenshots/${screeshotUrl}`}  /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">Close</Button>
