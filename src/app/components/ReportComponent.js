@@ -47,7 +47,7 @@ LinearProgressWithLabel.propTypes = {
 };
 
 export default function ReportComponent(props) {
-  const initialRefreshInterval = parseInt(window.localStorage.getItem('refreshInterval')) || 30;
+  const initialRefreshInterval = parseInt(localStorage.getItem('refreshInterval')) || 30;
   const [refreshInterval, setRefreshInterval] = useState(initialRefreshInterval);
   const [startdateUse, setStartDateUse] = useState('');
   const [enddateUse, setEndDateUse] = useState('');
