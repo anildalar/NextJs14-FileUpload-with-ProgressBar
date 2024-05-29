@@ -18,6 +18,7 @@ import { useSearchParams } from 'next/navigation';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { format, parseISO } from 'date-fns';
+import Image from 'next/image'
 
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -250,7 +251,8 @@ export default function ReportComponent(props) {
       <Dialog open={openDialog} onClose={handleCloseDialog}>
         <DialogTitle>{dialogContent}</DialogTitle>
         <DialogContent>
-          <img src={`/screenshots/${screeshotUrl}`} alt="Screenshot" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          <Image src={`/screenshots/${screeshotUrl}`}  alt="Screenshot" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+          {/* <img src={`/screenshots/${screeshotUrl}`}  /> */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="primary">Close</Button>
