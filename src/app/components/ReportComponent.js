@@ -54,6 +54,9 @@ export default function ReportComponent(props) {
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const uname = searchParams.get('uname');
   const pass = searchParams.get('pass');
+  const [dialogContent, setDialogContent] = useState('');
+  const [screeshotUrl, setScreeshotUrl] = useState('');
+  const [openDialog, setOpenDialog] = useState(false);
   const startdate = searchParams.get('startdate');
   const enddate = searchParams.get('enddate');
   const data = props.creds.reports.data || [];
@@ -137,10 +140,19 @@ export default function ReportComponent(props) {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+  const handleStatusInfoClick = (statusInfo,screenUrl) => {
+    setScreeshotUrl(screenUrl);
+    setDialogContent(statusInfo);
+    setOpenDialog(true);
+  };
 
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
+  };
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+    setDialogContent('');
   };
 
   const emptyRows = rowsPerPage - Math.min(rowsPerPage, filteredData.length - page * rowsPerPage);
@@ -198,8 +210,10 @@ export default function ReportComponent(props) {
                     <Typography 
                       sx={{ 
                         color: getStatusColor(row.status), 
-                        fontWeight: 'bold' 
+                        fontWeight: 'bold',
+                        cursor: row.status.toLowerCase() === 'failed' ? 'pointer' : 'default'
                       }}
+                      onClick={row.status.toLowerCase() === 'failed' ? () => handleStatusInfoClick(row.status_info,row.screenshot_path) : null}
                     >
                       {row.status_info}
                     </Typography>
@@ -233,6 +247,15 @@ export default function ReportComponent(props) {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </TableContainer>
+      <Dialog open={openDialog} onClose={handleCloseDialog}>
+        <DialogTitle>{dialogContent}</DialogTitle>
+        <DialogContent>
+          <img src={`/screenshots/${screeshotUrl}`} alt="Screenshot" style={{ maxWidth: '100%', maxHeight: '100%' }} />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">Close</Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
