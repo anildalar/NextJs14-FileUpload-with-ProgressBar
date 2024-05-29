@@ -250,7 +250,6 @@ export default function ReportComponent(props) {
         />
       </TableContainer>
       <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{dialogContent}</DialogTitle>
         <DialogContent>
           <Image src={`/screenshots/${screeshotUrl}`}  sizes="100vw" width={500}  height={500}  style={{width: '100%', height: 'auto', }} alt="Screenshot"   />
           {/* <img src={`/screenshots/${screeshotUrl}`}  /> */}
