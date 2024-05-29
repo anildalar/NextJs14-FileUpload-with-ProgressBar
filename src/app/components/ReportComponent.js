@@ -81,6 +81,8 @@ export default function ReportComponent(props) {
         return 'blue';
       case 'completed':
         return 'green';
+      case 'failed':
+        return 'red';
       default:
         return 'grey';
     }
