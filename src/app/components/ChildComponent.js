@@ -68,21 +68,28 @@ LinearProgressWithLabel.propTypes = {
 export default function ChildComponent(props) {
   const router = useRouter()
   const [progress, setProgress] = React.useState(0);
+  const [progress2, setProgress2] = React.useState(0);
   const [file, setFile] = React.useState(null);
   const [formData, setFormData] = useState({ number: [], content: '', tags: [], file: null, });
   const [isUploadSuccess, setIsUploadSuccess] = useState(true);
   const [isFormValid, setIsFormValid] = useState(false);
   const [videoPreview, setVideoPreview] = useState('');
   const [imagePreview, setImagePreview] = useState('');
+  const [imagePreviewProfile, setImagePreviewProfile] = useState('');
+  const [numberOfProfile, setNumberOfProfile] = useState();
   const [fileUrl, setFileUrl] = useState('');
+  const [fileUrlProfile, setFileUrlProfile] = useState('');
   const [loading, setLoading] = useState(false); 
   const [openModal, setOpenModal] = useState(false);
+  const [openModal2, setOpenModal2] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [proxies, setProxies] = useState('');
   const [validProxies, setValidProxies] = useState('');
   const [numberOptions, setNumberOptions] = useState(props.creds.numbers); 
-
+  const [selection, setSelection] = useState('manual');
+  const [selectedFileProfile, setSelectedFileProfile] = useState(null);
+  const [error, setError] = useState('');
   const searchParams = useSearchParams()
   const uname = searchParams.get('uname')
   const pass = searchParams.get('pass')
@@ -90,8 +97,18 @@ export default function ChildComponent(props) {
   const handleOpenModal = () => {
     setOpenModal(true);
   };
+  const handleOpenModal2 = () => {
+    setOpenModal2(true);
+  };
+  const handleSelectionChange = (event) => {
+    setSelection(event.target.value);
+  };
+  
   const handleCloseModal = () => {
     setOpenModal(false);
+  };
+  const handleCloseModal2 = () => {
+    setOpenModal2(false);
   };
   const checkFormValidity = () => {
     const { number, content } = formData;
@@ -101,6 +118,22 @@ export default function ChildComponent(props) {
     checkFormValidity();
     validateProxies(proxies);
   }, [formData,proxies,isUploadSuccess]);
+  const handleFileChangeProfile = (event) => {
+    const selectedFile = event.target.files[0];
+    setSelectedFileProfile(selectedFile);
+    if (selectedFile) {
+      const mimeType = selectedFile.type;
+      const supportedImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (supportedImageTypes.includes(mimeType)) {
+        uploadProfile(selectedFile, 'image');
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          setImagePreviewProfile(event.target.result);
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+  };
   const handleFileChange = (event) => {
     setIsFormValid(false);
     const selectedFile = event.target.files[0];
@@ -139,6 +172,10 @@ export default function ChildComponent(props) {
   const handleChangeTag = (event, newValue) => {
     setFormData({ ...formData, tags: newValue || [] }); // Ensure newValue is not undefined
   };
+  const handleNumberChangeProfile = (event) => {
+    const value = event.target.value;
+    setNumberOfProfile(value);
+  }
   const handleNumberChange = (event) => {
     const value = event.target.value;
     if (value.includes('all')) {
@@ -243,6 +280,98 @@ export default function ChildComponent(props) {
     } finally {
       setLoading(false); // Hide loader
     }
+  };
+  const handleSubmitProfile = async (e) => {
+    e.preventDefault();
+    // setLoading(true); // Show loader
+    if (!numberOfProfile) {
+      setError('Please select a number.');
+      return;
+    }
+    if (!fileUrlProfile) {
+      setError('Please upload a profile picture.');
+      return;
+    }
+    try {
+      const data = {
+        phoneNumber: numberOfProfile,
+        fileUrl: fileUrlProfile,
+      };
+      const res = await fetch('/api/uploadProfile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data),
+      });
+      const data2 = await res.json();
+      if (data2.status === 'Success') {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success',
+          text: 'Profile Updated successfully!',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'Error profile update.',
+        }).then(() => {
+          window.location.reload(); // Reload the page after the Swal modal is closed
+        });
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error uploading profile.',
+      });
+      console.error('Error uploading profile:', error);
+    } finally {
+      setLoading(false); // Hide loader
+    }
+  }
+  const uploadProfile = async (file, type) => {
+      const MAX_IMAGE_SIZE_MB = 5; // Maximum image file size in MB
+      const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024; // Maximum image file size in bytes
+      const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/webp'];
+      const formData = new FormData();
+      if (type === 'image') {
+        if (file.size > MAX_IMAGE_SIZE_BYTES) {
+            setIsFormValid(false);
+            alert(`Image file size should not exceed ${MAX_IMAGE_SIZE_MB} MB.`);
+            return;
+        }
+        if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+            setIsFormValid(false);
+            alert('Invalid image file type. Allowed types are JPEG, PNG, GIF, BMP, and WEBP.');
+            return;
+        }
+        formData.append('profile', file);
+      }
+
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload');
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const percentCompleted = Math.round((event.loaded * 100) / event.total);
+          setProgress2(percentCompleted);
+        }
+      });
+  
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === XMLHttpRequest.DONE) {
+          if (xhr.status === 200) {
+            // setIsFormValid(true);
+            const responseJson = JSON.parse(xhr.responseText);
+            console.log('Response JSON:', responseJson);
+            setFileUrlProfile(responseJson.data.path);
+          } else {
+            setIsFormValid(false);
+          }
+        }
+      };
+      xhr.send(formData);
   };
   const uploadFile = async (file, type) => {
     const MAX_VIDEO_SIZE_MB = 512; // Maximum video file size in MB
@@ -376,20 +505,36 @@ export default function ChildComponent(props) {
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {props.creds.user === 'zia' && (
-              <Button 
-                variant="contained" 
-                sx={{ 
-                  mr: 2, 
-                  background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',
-                  color: 'white',
-                  '&:hover': {
-                    background: 'linear-gradient(45deg, #4A00E0 30%, #8E2DE2 90%)',
-                  }
-                }} 
-                onClick={handleOpenModal}
-              >
-                Add Proxies
-              </Button>
+              <>
+                <Button 
+                    variant="contained" 
+                    sx={{ 
+                      mr: 2, 
+                      background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #4A00E0 30%, #8E2DE2 90%)',
+                      }
+                    }} 
+                    onClick={handleOpenModal}
+                >
+                    Add Proxies
+                </Button>
+                <Button 
+                    variant="contained" 
+                    sx={{ 
+                      mr: 2, 
+                      background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',
+                      color: 'white',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #4A00E0 30%, #8E2DE2 90%)',
+                      }
+                    }} 
+                    onClick={handleOpenModal2}
+                >
+                    Add Profile
+                </Button>
+              </>
             )}
             <Button 
               variant="contained" 
@@ -512,27 +657,70 @@ export default function ChildComponent(props) {
         </Box>
       {
           props.creds.user ==='zia' &&
-          <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="lg">
-            <DialogTitle sx={{ textAlign: 'center', fontSize: '2rem' }}>Enter Proxies</DialogTitle>
-            <DialogContent>
-              <Typography variant="subtitle1">Enter proxies in comma separated or proxy per line:</Typography>
-              <Typography variant="subtitle1" sx={{ color: 'red' }}>username:password@ip:port or ip:port</Typography>
-              <TextField
-                multiline
-                rows={4}
-                value={proxies}
-                onChange={handleProxiesChange}
-                fullWidth
-                variant="outlined"
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseModal}>Close</Button>
-              <Button onClick={handleSubmitProxies} color="primary" variant="contained">
-                Submit
-              </Button>
-            </DialogActions>
-          </Dialog>
+          <>
+            <Dialog open={openModal} onClose={handleCloseModal} fullWidth maxWidth="lg">
+              <DialogTitle sx={{ textAlign: 'center', fontSize: '2rem' }}>Enter Proxies</DialogTitle>
+              <DialogContent>
+                <Typography variant="subtitle1">Enter proxies in comma separated or proxy per line:</Typography>
+                <Typography variant="subtitle1" sx={{ color: 'red' }}>username:password@ip:port or ip:port</Typography>
+                <TextField
+                  multiline
+                  rows={4}
+                  value={proxies}
+                  onChange={handleProxiesChange}
+                  fullWidth
+                  variant="outlined"
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseModal}>Close</Button>
+                <Button onClick={handleSubmitProxies} color="primary" variant="contained">
+                  Submit
+                </Button>
+              </DialogActions>
+            </Dialog>
+            <Dialog open={openModal2} onClose={handleCloseModal2} fullWidth maxWidth="md">
+              <DialogTitle sx={{ textAlign: 'center', fontSize: '2rem' }}>Upload Profile Pic</DialogTitle>
+              <DialogContent sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <FormControl sx={{ minWidth: 300, mb: 2 }}>
+                  <InputLabel id="number-label">Number</InputLabel>
+                  <Select
+                    labelId="number-label"
+                    id="number"
+                    value={numberOfProfile}
+                    onChange={handleNumberChangeProfile}
+                    label="Number"
+                    required
+                  >
+                    {numberOptions?.map((option) => (
+                      <MenuItem key={option} value={option}>{option}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                  {imagePreviewProfile && (
+                      <img
+                        src={imagePreviewProfile}
+                        alt="Preview"
+                        style={{ maxWidth: '20%',marginTop:"10px",marginBottom:"20px", maxHeight: '230px', marginBottom: '10px' }}
+                      />
+                    )}
+                  <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+                    Upload Profile Pic
+                    <input type="file" style={{ display: 'none' }} onChange={handleFileChangeProfile} />
+                  </Button>
+                  {progress2 > 0 && (
+                    <LinearProgressWithLabel value={progress2} sx={{ mt: 2 }} />
+                  )}
+                  {error && <p style={{ color: 'red', marginTop: '10px' }}>{error}</p>}
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseModal2}>Close</Button>
+                <Button onClick={handleSubmitProfile} color="primary" variant="contained">
+                  Submit
+                </Button>
+              </DialogActions>
+            </Dialog>
+          </>
       }
       {
         props.creds.user === 'zia' &&

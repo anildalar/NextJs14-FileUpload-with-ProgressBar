@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, MenuItem, Select, TablePagination } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, TablePagination, Tooltip } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -19,7 +19,7 @@ import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import { format, parseISO } from 'date-fns';
 import Image from 'next/image'
-
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -51,6 +51,9 @@ export default function ReportComponent(props) {
   const [refreshInterval, setRefreshInterval] = useState(initialRefreshInterval);
   const [startdateUse, setStartDateUse] = useState('');
   const [enddateUse, setEndDateUse] = useState('');
+  const [numberFilter, setNumberFilter] = useState('None');
+  const [hashtagFilter, setHashtagFilter] = useState('None');
+  const [statusFilter, setStatusFilter] = useState('None');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [page, setPage] = useState(0);
@@ -60,25 +63,41 @@ export default function ReportComponent(props) {
   const [dialogContent, setDialogContent] = useState('');
   const [screeshotUrl, setScreeshotUrl] = useState('');
   const [openDialog, setOpenDialog] = useState(false);
-  const startdate = searchParams.get('startdate');
-  const enddate = searchParams.get('enddate');
   const data = props.creds.reports.data || [];
   
-  const filterDataByDate = (data, startdate, enddate) => {
-    if (!startdate || !enddate) {
-      return data;
-    }
-    const startDateObj = new Date(startdate.split('-').reverse().join('-'));
-    const endDateObj = new Date(enddate.split('-').reverse().join('-'));
-    endDateObj.setHours(23, 59, 59, 999); // Include the entire end date
+  const filterDataByDate = (data, startdate, enddate, numberFilter, hashtagFilter, statusFilter) => {
+    let filteredData = data;
+    /* if (!startdate || !enddate) {
+        return data;
+    } */
+    if (startdate && enddate) {
+      const startDateObj = new Date(startdate);
+      const endDateObj = new Date(enddate);
+      endDateObj.setHours(23, 59, 59, 999); // Include the entire end date
   
-    return data.filter((item) => {
-      const createdAt = new Date(item.createdAt);
-      return createdAt >= startDateObj && createdAt <= endDateObj;
-    });
+      filteredData = filteredData.filter((item) => {
+        const createdAt = new Date(item.createdAt);
+        return createdAt >= startDateObj && createdAt <= endDateObj;
+      });
+    }
+
+    if (numberFilter && numberFilter !== 'None') {
+      filteredData = filteredData.filter(item => item.number.includes(numberFilter));
+    }
+
+    if (hashtagFilter && hashtagFilter !== 'None') {
+      filteredData = filteredData.filter(item => item.tweet_hash && item.tweet_hash.includes(hashtagFilter));
+    }
+
+    if (statusFilter && statusFilter !== 'None') {
+      filteredData = filteredData.filter(item => item.status.toLowerCase() === statusFilter.toLowerCase());
+    }
+
+    return filteredData;
   };
 
-  const filteredData = filterDataByDate(data, startdate, enddate);
+  const filteredData = filterDataByDate(data, startdateUse, enddateUse, numberFilter, hashtagFilter, statusFilter);
+    
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -118,10 +137,6 @@ export default function ReportComponent(props) {
     }
   };
 
-  const handleGoClick = () => {
-    router.push(`/reports?uname=${uname}&pass=${pass}&startdate=${formatDate2(startdateUse)}&enddate=${formatDate2(enddateUse)}`);
-  };
-
   const handleExcelDownload = () => {
     const excelData = filteredData.map(row => [
       row.number,
@@ -147,7 +162,6 @@ export default function ReportComponent(props) {
     setDialogContent(statusInfo);
     setOpenDialog(true);
   };
-
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -156,18 +170,15 @@ export default function ReportComponent(props) {
     setOpenDialog(false);
     setDialogContent('');
   };
-
   const handleAutoRefresh = () => {
     window.location.reload();
     //router.push(`/reports?uname=${uname}&pass=${pass}&startdate=${startdate}&enddate=${enddate}`);
   };
-
   React.useEffect(() => {
     const intervalId = setInterval(handleAutoRefresh, refreshInterval * 1000); // Convert seconds to milliseconds
     return () => clearInterval(intervalId); // Cleanup function to clear the interval on component unmount
   }, [refreshInterval]); // Trigger the effect whenever the refreshInterval changes
 
-  // Function to handle interval input change
   const handleIntervalChange = (e) => {
     setRefreshInterval(e.target.value);
     localStorage.setItem('refreshInterval', e.target.value); // Store the refresh interval in localStorage
@@ -179,7 +190,7 @@ export default function ReportComponent(props) {
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative', }}>
       {/* <Image src={`/screenshots/file.png`}  alt="Screenshot" width={400} height={400}/> */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 5 }}>
+      {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, mt: 3 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ mr: 2 }}>
             <InputLabel htmlFor="startdate">Start Date</InputLabel>
@@ -189,7 +200,6 @@ export default function ReportComponent(props) {
             <InputLabel htmlFor="enddate">End Date</InputLabel>
             <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
           </Box>
-          <Button sx={{ color: 'white', background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',mr: 2 }} onClick={handleGoClick} variant="contained">Go</Button>
         </Box>
         <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: 'primary.main', textAlign: 'center' }}>
           {uname.toUpperCase()} Account Reports
@@ -201,6 +211,60 @@ export default function ReportComponent(props) {
           <Button variant="contained" sx={{ color: 'white', background: 'linear-gradient(45deg, #21CBF3 30%, #2196F3 90%)' }} onClick={handleExcelDownload}>
             Download Excel
           </Button>
+        </Box>
+      </Box>
+
+      
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="startdate">Start Date</InputLabel>
+          <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="enddate">End Date</InputLabel>
+          <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="number-filter">Number</InputLabel>
+          <Select
+            id="number-filter"
+            value={numberFilter}
+            onChange={(e) => setNumberFilter(e.target.value)}
+            sx={{ minWidth: 80 }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {[...new Set(data.map(item => item.number))].map((number, index) => (
+              <MenuItem key={index} value={number}>{number}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="hashtag-filter">Hashtag</InputLabel>
+          <Select
+            id="hashtag-filter"
+            value={hashtagFilter}
+            onChange={(e) => setHashtagFilter(e.target.value)}
+            sx={{ minWidth: 80 }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {[...new Set(data.map(item => item.tweet_hash))].map((hash, index) => (
+              <MenuItem key={index} value={hash}>{hash}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box>
+          <InputLabel htmlFor="status-filter">Status</InputLabel>
+          <Select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            sx={{ minWidth: 80 }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {['Pending', 'InProgress', 'Completed', 'Failed'].map((status, index) => (
+              <MenuItem key={index} value={status.toLowerCase()}>{status}</MenuItem>
+            ))}
+          </Select>
         </Box>
       </Box>
       <Box 
@@ -220,7 +284,93 @@ export default function ReportComponent(props) {
           style={{ height: '35px',lineHeight: '35px',width:'80px', padding: '0px',textAlign: 'center', }}
           onChange={handleIntervalChange} 
         /> 
+      </Box> */}
+
+
+
+
+     <Box sx={{ p: 3, background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',height: '230px' }}>
+      
+      <Button  onClick={() => window.location.href = `/?uname=${uname}&pass=${pass}`} sx={{  position: 'absolute', top: '12px', left: '32px',  color: 'white',  background: '#3371FF',  }}>
+        <Typography variant="button" sx={{ marginLeft: '2px' }}>Goto Campaign</Typography>
+      </Button>
+      <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', mb: 3 }}>
+        {uname.toUpperCase()} Account Reports
       </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="startdate">Start Date</InputLabel>
+          <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="enddate">End Date</InputLabel>
+          <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="number-filter">Number</InputLabel>
+          <Select
+            id="number-filter"
+            value={numberFilter}
+            onChange={(e) => setNumberFilter(e.target.value)}
+            sx={{ minWidth: 80, backgroundColor: 'white' }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {[...new Set(data.map(item => item.number))].map((number, index) => (
+              <MenuItem key={index} value={number}>{number}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="hashtag-filter">Hashtag</InputLabel>
+          <Select
+            id="hashtag-filter"
+            value={hashtagFilter}
+            onChange={(e) => setHashtagFilter(e.target.value)}
+            sx={{ minWidth: 80, backgroundColor: 'white' }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {[...new Set(data.map(item => item.tweet_hash))].map((hash, index) => (
+              <MenuItem key={index} value={hash}>{hash}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box sx={{ mr: 2 }}>
+          <InputLabel htmlFor="status-filter">Status</InputLabel>
+          <Select
+            id="status-filter"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            sx={{ minWidth: 80, backgroundColor: 'white' }}
+          >
+            <MenuItem value="None"><em>None</em></MenuItem>
+            {['Pending', 'InProgress', 'Completed', 'Failed'].map((status, index) => (
+              <MenuItem key={index} value={status.toLowerCase()}>{status}</MenuItem>
+            ))}
+          </Select>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0, m: 0, background: 'linear-gradient(90deg, #ff7e5f, #feb47b)', borderRadius: '8px', padding: '8px' }}>
+          <InputLabel htmlFor="textinput" sx={{ color: '#000', mr: 1 }}><b>Autorefresh In -</b></InputLabel>
+          <input
+            id="textinput"
+            type="number"
+            value={refreshInterval}
+            style={{ height: '35px', lineHeight: '35px', width: '80px', padding: '0px', textAlign: 'center' }}
+            onChange={handleIntervalChange}
+          />
+        </Box>
+      </Box>
+     {/*  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+        <Button variant="contained" sx={{ color: 'white', background: '#3371FF', mr: 2 }} onClick={() => window.location.href = `/?uname=${uname}&pass=${pass}`}>
+          Goto campaign
+        </Button>
+        <Button variant="contained" sx={{ color: 'white', background: '#3371FF' }} onClick={handleExcelDownload}>
+          Download Excel
+        </Button>
+      </Box> */}
+    </Box>
+
+
+        
       <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
           <TableHead>
