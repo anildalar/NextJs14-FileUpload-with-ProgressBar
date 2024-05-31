@@ -1,7 +1,7 @@
 "use client";
 import * as React from 'react';
 import { styled } from '@mui/material/styles';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, InputLabel, MenuItem, Select, TablePagination, Tooltip } from "@mui/material";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, IconButton, Input, InputLabel, MenuItem, Select, TablePagination, Tooltip } from "@mui/material";
 import PropTypes from 'prop-types';
 import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
@@ -54,6 +54,7 @@ export default function ReportComponent(props) {
   const [numberFilter, setNumberFilter] = useState('None');
   const [hashtagFilter, setHashtagFilter] = useState('None');
   const [statusFilter, setStatusFilter] = useState('None');
+  const [tweetDataFilter, setTweetDataFilter] = useState('None');
   const router = useRouter();
   const searchParams = useSearchParams();
   const [page, setPage] = useState(0);
@@ -65,7 +66,7 @@ export default function ReportComponent(props) {
   const [openDialog, setOpenDialog] = useState(false);
   const data = props.creds.reports.data || [];
   
-  const filterDataByDate = (data, startdate, enddate, numberFilter, hashtagFilter, statusFilter) => {
+  const filterDataByDate = (data, startdate, enddate, numberFilter, hashtagFilter, statusFilter,tweetDataFilter) => {
     let filteredData = data;
     /* if (!startdate || !enddate) {
         return data;
@@ -88,15 +89,18 @@ export default function ReportComponent(props) {
     if (hashtagFilter && hashtagFilter !== 'None') {
       filteredData = filteredData.filter(item => item.tweet_hash && item.tweet_hash.includes(hashtagFilter));
     }
-
+    //tweetDataFilter
     if (statusFilter && statusFilter !== 'None') {
       filteredData = filteredData.filter(item => item.status.toLowerCase() === statusFilter.toLowerCase());
+    }
+    if (tweetDataFilter && tweetDataFilter !== 'None') {
+      filteredData = filteredData.filter(item => item.tweet_data && item.tweet_data.includes(tweetDataFilter));
     }
 
     return filteredData;
   };
 
-  const filteredData = filterDataByDate(data, startdateUse, enddateUse, numberFilter, hashtagFilter, statusFilter);
+  const filteredData = filterDataByDate(data, startdateUse, enddateUse, numberFilter, hashtagFilter, statusFilter,tweetDataFilter);
     
   const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -289,87 +293,96 @@ export default function ReportComponent(props) {
 
 
 
-     <Box sx={{ p: 3, background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',height: '230px' }}>
+    <Box sx={{ p: 3, background: 'linear-gradient(50deg, #21CBF3 30%, #2196F3 90%)',height: '230px' }}>
       
-      <Button  onClick={() => window.location.href = `/?uname=${uname}&pass=${pass}`} sx={{  position: 'absolute', top: '12px', left: '32px',  color: 'white',  background: '#3371FF',  }}>
-        <Typography variant="button" sx={{ marginLeft: '2px' }}>Goto Campaign</Typography>
-      </Button>
-      <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', mb: 3 }}>
-        {uname.toUpperCase()} Account Reports
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-        <Box sx={{ mr: 2 }}>
-          <InputLabel htmlFor="startdate">Start Date</InputLabel>
-          <input id="startdate" type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
-        </Box>
-        <Box sx={{ mr: 2 }}>
-          <InputLabel htmlFor="enddate">End Date</InputLabel>
-          <input id="enddate" type="date" value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
-        </Box>
-        <Box sx={{ mr: 2 }}>
-          <InputLabel htmlFor="number-filter">Number</InputLabel>
-          <Select
-            id="number-filter"
-            value={numberFilter}
-            onChange={(e) => setNumberFilter(e.target.value)}
-            sx={{ minWidth: 80, backgroundColor: 'white' }}
-          >
-            <MenuItem value="None"><em>None</em></MenuItem>
-            {[...new Set(data.map(item => item.number))].map((number, index) => (
-              <MenuItem key={index} value={number}>{number}</MenuItem>
-            ))}
-          </Select>
-        </Box>
-        <Box sx={{ mr: 2 }}>
-          <InputLabel htmlFor="hashtag-filter">Hashtag</InputLabel>
-          <Select
-            id="hashtag-filter"
-            value={hashtagFilter}
-            onChange={(e) => setHashtagFilter(e.target.value)}
-            sx={{ minWidth: 80, backgroundColor: 'white' }}
-          >
-            <MenuItem value="None"><em>None</em></MenuItem>
-            {[...new Set(data.map(item => item.tweet_hash))].map((hash, index) => (
-              <MenuItem key={index} value={hash}>{hash}</MenuItem>
-            ))}
-          </Select>
-        </Box>
-        <Box sx={{ mr: 2 }}>
-          <InputLabel htmlFor="status-filter">Status</InputLabel>
-          <Select
-            id="status-filter"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            sx={{ minWidth: 80, backgroundColor: 'white' }}
-          >
-            <MenuItem value="None"><em>None</em></MenuItem>
-            {['Pending', 'InProgress', 'Completed', 'Failed'].map((status, index) => (
-              <MenuItem key={index} value={status.toLowerCase()}>{status}</MenuItem>
-            ))}
-          </Select>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0, m: 0, background: 'linear-gradient(90deg, #ff7e5f, #feb47b)', borderRadius: '8px', padding: '8px' }}>
-          <InputLabel htmlFor="textinput" sx={{ color: '#000', mr: 1 }}><b>Autorefresh In -</b></InputLabel>
-          <input
-            id="textinput"
-            type="number"
-            value={refreshInterval}
-            style={{ height: '35px', lineHeight: '35px', width: '80px', padding: '0px', textAlign: 'center' }}
-            onChange={handleIntervalChange}
-          />
-        </Box>
-      </Box>
-     {/*  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-        <Button variant="contained" sx={{ color: 'white', background: '#3371FF', mr: 2 }} onClick={() => window.location.href = `/?uname=${uname}&pass=${pass}`}>
-          Goto campaign
+        <Button  onClick={() => window.location.href = `/?uname=${uname}&pass=${pass}`} sx={{  position: 'absolute', top: '12px', left: '45px',  color: 'white',  background: '#3371FF',  }}>
+          <Typography variant="button" sx={{ marginLeft: '2px' }}>Goto Campaign</Typography>
         </Button>
-        <Button variant="contained" sx={{ color: 'white', background: '#3371FF' }} onClick={handleExcelDownload}>
-          Download Excel
+        <Box component="h2" sx={{ fontSize: '2rem', fontWeight: 'bold', color: '#FFFFFF', textAlign: 'center', mb: 3 }}>
+          {uname.toUpperCase()} Account Reports
+        </Box>{/*  //setTweetDataFilter */}
+
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+          <Box sx={{ position: 'absolute', top: '160px', left: '45px',  }}>
+            <InputLabel htmlFor="startdate" sx={{color:"#000"}}><b>Start Date</b></InputLabel>
+            <Input id="startdate" sx={{pl:1,pr:1,height:40, minWidth: 100, backgroundColor: '#FFBE33' }} type="date" value={startdateUse} onChange={(e) => setStartDateUse(e.target.value)} />
+          </Box>
+          <Box sx={{ position: 'absolute', top: '160px', left: '210px', }}>
+            <InputLabel htmlFor="enddate" sx={{color:"#000"}}><b>End Date</b></InputLabel>
+            <Input id="enddate" type="date"  sx={{height:40, pl:1,pr:1,minWidth: 100, backgroundColor: '#FFBE33' }} value={enddateUse} onChange={(e) => setEndDateUse(e.target.value)} />
+          </Box>
+          
+          <Box sx={{ position: 'absolute', top: '160px', right: '220px',}}>
+            <InputLabel htmlFor="hashtag-filter" sx={{color:"#000"}}><b>Tweet Data</b></InputLabel>
+            <Select
+              id="hashtag-filter"
+              value={tweetDataFilter}
+              onChange={(e) => setTweetDataFilter(e.target.value)}
+              sx={{ width: 160,height:40, backgroundColor: '#FFC733' }}
+            >
+              <MenuItem value="None"><em>None</em></MenuItem>
+              {[...new Set(data.map(item => item.tweet_data))].map((hash, index) => (
+                <MenuItem key={index} value={hash}>{hash}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{position: 'absolute', top: '160px', right: '400px', }}>
+            <InputLabel htmlFor="number-filter" sx={{color:"#000"}}><b>Number</b></InputLabel>
+            <Select
+              id="number-filter"
+              value={numberFilter}
+              onChange={(e) => setNumberFilter(e.target.value)}
+              sx={{ width: 160,height:40, backgroundColor: '#FFC733' }}
+            >
+              <MenuItem value="None"><em>None</em></MenuItem>
+              {[...new Set(data.map(item => item.number))].map((number, index) => (
+                <MenuItem key={index} value={number}>{number}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{ position: 'absolute', top: '160px', right: '45px',}}>
+            <InputLabel htmlFor="hashtag-filter" sx={{color:"#000"}}><b>Hashtag</b></InputLabel>
+            <Select
+              id="hashtag-filter"
+              value={hashtagFilter}
+              onChange={(e) => setHashtagFilter(e.target.value)}
+              sx={{ width: 160,height:40, backgroundColor: '#FFC733' }}
+            >
+              <MenuItem value="None"><em>None</em></MenuItem>
+              {[...new Set(data.map(item => item.tweet_hash))].map((hash, index) => (
+                <MenuItem key={index} value={hash}>{hash}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{ position: 'absolute', top: '160px', left: '375px', }}>
+            <InputLabel htmlFor="status-filter" sx={{color:"#000"}}><b>Status</b></InputLabel>
+            <Select
+              id="status-filter"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              sx={{ width: 160,height:40, backgroundColor: '#FFC733' }}
+            >
+              <MenuItem value="None"><em>None</em></MenuItem>
+              {['Pending', 'InProgress', 'Completed', 'Failed'].map((status, index) => (
+                <MenuItem key={index} value={status.toLowerCase()}>{status}</MenuItem>
+              ))}
+            </Select>
+          </Box>
+          <Box sx={{ position: 'absolute', top: '105px', left: '650px', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 0, m: 0, background: 'linear-gradient(90deg, #ff7e5f, #feb47b)', borderRadius: '8px', padding: '8px' }}>
+            <InputLabel htmlFor="textinput" sx={{ color: '#000', mr: 1 }}><b>Autorefresh In -</b></InputLabel>
+            <input
+              id="textinput"
+              type="number"
+              value={refreshInterval}
+              style={{ height: '35px', lineHeight: '35px', width: '80px', padding: '0px', textAlign: 'center' }}
+              onChange={handleIntervalChange}
+            />
+          </Box>
+        </Box>
+        <Button variant="contained" sx={{ position: 'absolute', top: '12px', right: '45px',color: '#000', background: 'linear-gradient(90deg, #ff7e5f, #feb47b)' }} onClick={handleExcelDownload}>
+            <Typography variant="button" sx={{ marginLeft: '2px' }}>Download Excel</Typography>
         </Button>
-      </Box> */}
     </Box>
-
-
         
       <TableContainer sx={{ mt: 5, mb: 5 }} component={Paper}>
         <Table sx={{ minWidth: 650 }} aria-label="simple table">
