@@ -292,6 +292,8 @@ export default function ChildComponent(props) {
       setError('Please upload a profile picture.');
       return;
     }
+    setLoading(true); 
+    setOpenModal2(false);
     try {
       const data = {
         phoneNumber: numberOfProfile,
