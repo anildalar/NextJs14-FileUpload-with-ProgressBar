@@ -21,9 +21,9 @@ export async function POST(req, res) {
       const uniqueId = uuidv4();
       const filePath = `./uploads/profileImages/${uniqueId}-file${fileExtension}`; // Append extension to file name
   
-      await pump(imageData.stream(), fs.createWriteStream(filePath));
+      await pump(profile.stream(), fs.createWriteStream(filePath));
   
-      return NextResponse.json({ status: "success", data: { size: imageData.size, path: filePath } });
+      return NextResponse.json({ status: "success", data: { size: profile.size, path: filePath } });
     }
     if(imageData){
       const fileExtension = path.extname(imageData.name); // Extract file extension
