@@ -429,7 +429,6 @@ export default function ChildComponent(props) {
 
     xhr.send(formData);
   };
-  
   const handleProxiesChange = (e) => {
     const input = e.target.value;
     setProxies(input);
@@ -496,7 +495,6 @@ export default function ChildComponent(props) {
   const paginatedRows = props?.creds?.combinedArray.slice(startIndex, startIndex + rowsPerPage);
   return (
     <Container maxWidth={'xl'} sx={{ position: 'relative',pt:3 }}>
-
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
           <Typography variant="h4" sx={{ textAlign: 'left', color: '#1976d2', fontWeight: 'bold' }}>
             Welcome {(props?.creds?.user).toUpperCase()}
